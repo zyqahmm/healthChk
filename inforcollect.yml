@@ -1,0 +1,36 @@
+---
+- hosts: all
+  tasks:
+    - name: exec inforcollect.sh in each node
+      script: inforcollect.sh
+
+  #  - name: copy
+  #    copy:
+  #      src: inforcollect.sh
+  #      dest: /tmp/inforcollect.sh
+  #      mode: u+rwx
+
+  #  - name: exec 
+  #    shell: /tmp/inforcollect.sh
+
+    - name: set inforcollect log file name
+      set_fact:
+        useraddlog: "{{DATE}}"
+        #useraddlog: "{{ansible_date_time.date}}-{{ansible_date_time.time}}"
+
+    - name: fetch inforcollect log
+      fetch:
+        src: /tmp/rhel-inforcollect
+        dest: /ansible/output/{{IP}}/inforcollect_{{useraddlog}}
+        flat: yes
+
+  #  - name: remove rhel-inforcollect log from target
+  #    file:
+  #      path: /tmp/rhel-inforcollect
+  #      state: absent
+
+    - name: exec postinforcollect.sh in local host
+      script: postinforcollect.sh
+      delegate_to: 127.0.0.1
+      become: false
+      run_once: true
